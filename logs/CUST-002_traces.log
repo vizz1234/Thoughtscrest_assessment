@@ -1,0 +1,40 @@
+============================================================================================
+TRACE ID: TRC-E6EDFB28 | TIMESTAMP: 2026-11-06 20:20:30 | CUSTOMER: CUST-002
+USER QUERY: Are there any unusual spending spikes or budget alerts on my account, and how can I optimize my family's idle cash?
+--------------------------------------------------------------------------------------------
+  Step 1: Planner Agent [PLANNING] (0.1 ms | Deterministic Intent & Dependency Planner)
+    • Summary : Parsed query & memory -> Intent=SAVINGS_AND_RECOMMENDATIONS, Focus=['All Categories']. Planned pipeline: Spending=True -> Recommendation=True, Alerting=True.
+    • Tools   : memory_manager.get_long_term_memory, memory_manager.extract_and_persist_facts
+    • Handoff : query='Are there any unusual spending spikes or budget alerts on my account, and how ca', customer_id=CUST-002 -> ExecutionPlan(intent=SAVINGS_AND_RECOMMENDATIONS, steps=5)
+  Step 2: Spending Analysis Agent [TOOL_CALL] (1.3 ms | Deterministic Financial Reasoning Engine (No API Key Set))
+    • Summary : Analyzed 3-month transaction ledger for CUST-002: categorized $5,777.97 spend across 8 categories, flagged 2 overspent categories (Shopping, Utilities) and 3 recurring subscriptions.
+    • Tools   : tool_aggregate_spending_by_category, tool_detect_subscriptions_and_habits
+    • Handoff : customer_id=CUST-002, period=2026-08..2026-10 -> Produced SpendingAnalysisReport (Total Spend=$5,777.97, Savings Rate=32.0%, MoM=+11.9%)
+  Step 3: Recommendation Agent [HANDOFF] (0.3 ms | Deterministic Financial Reasoning Engine (No API Key Set))
+    • Summary : Consumed SpendingAnalysisReport from Spending Analysis Agent -> generated 3 personalized recommendations unlocking $500.75/mo ($6,009.00/yr) and lifting savings rate to 37.9%.
+    • Tools   : tool_simulate_budget_optimization
+    • Handoff : SpendingAnalysisReport(total_spend=$5,777.97, overspent=['Shopping', 'Utilities'], micro_patterns=0) -> Produced RecommendationReport (Monthly Savings=$500.75, Annual=$6,009.00, New Savings Rate=37.9%)
+  Step 4: Alerting Agent [TOOL_CALL] (1.2 ms | Deterministic Financial Reasoning Engine (No API Key Set))
+    • Summary : Executed anomaly & budget threshold scan: Risk Level=HIGH (3 Critical, 3 Warning, 1 Info alerts).
+    • Tools   : tool_evaluate_financial_alerts
+    • Handoff : customer_id=CUST-002, month=2026-10 -> Produced AlertReport with 7 graded alerts.
+  Step 5: Planner Agent [SYNTHESIS] (0.1 ms | Deterministic Financial Reasoning Engine (No API Key Set))
+    • Summary : Collated outputs from Spending Analysis Agent, Recommendation Agent, and Alerting Agent with Long-Term Memory into final customer response.
+    • Tools   : memory_manager.add_chat_turn, memory_manager.cache_session_artifacts
+    • Handoff : spending_report=Yes, recommendation_report=Yes, alert_report=Yes -> Generated 4529 chars markdown advisory response.
+============================================================================================
+
+============================================================================================
+TRACE ID: TRC-8C041901 | TIMESTAMP: 2026-11-06 20:20:30 | CUSTOMER: CUST-002
+USER QUERY: give me a pasta receipe and tell me how to treat my acne
+--------------------------------------------------------------------------------------------
+  Step 1: Planner Agent [GUARDRAIL] (0.0 ms | Deterministic Pattern & Domain Guardrail)
+    • Summary : BLOCKED off-topic query: Blocked off-topic request under category 'Cooking & Recipes' (matched pattern `\breceipe\b`).
+    • Tools   : evaluate_domain_guardrail
+    • Handoff : query='give me a pasta receipe and tell me how to treat my acne', customer_id=CUST-002 -> ExecutionPlan(intent=BLOCKED_OFF_TOPIC, is_allowed=False)
+  Step 2: Planner Agent [GUARDRAIL] (0.0 ms | Guardrail Refusal Synthesizer)
+    • Summary : Returned compliant banking scope refusal without executing financial tools or sub-agents.
+    • Tools   : format_guardrail_refusal
+    • Handoff : blocked_query='give me a pasta receipe and tell me how to treat my acne' -> Polite guardrail refusal message returned to user.
+============================================================================================
+

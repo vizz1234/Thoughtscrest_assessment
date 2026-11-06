@@ -1,0 +1,44 @@
+{
+  "CUST-001": {
+    "learned_facts": [
+      "Prefers keeping gym membership (CloudGym Pro) active despite high cost.",
+      "Trying to cook at home on weeknights to accelerate house down payment goal.",
+      "[2026-11-06] User stated: \"I'm saving for a wedding in December\u2014set my dining budget to $500 and show me how to save more.\"",
+      "Updated Food & Dining monthly budget from $450 to $500.",
+      "[2026-11-06] User stated: \"I am saving for a trip to Tokyo in December.\"",
+      "[2026-11-06] User stated: \"I'm saving for a wedding in December \u2014 set my dining budget to $500 and show me my updated plan.\""
+    ],
+    "past_advisory_notes": [
+      "2026-09-30: Flagged rising food delivery trend; user requested weekly nudges."
+    ],
+    "custom_preferences": {
+      "preferred_savings_day": "1st and 15th (Payday)"
+    }
+  },
+  "CUST-002": {
+    "learned_facts": [
+      "Prioritizes kids' education (Kumon) and family museum activities.",
+      "Interested in low-risk, FDIC-insured high-yield savings options."
+    ],
+    "past_advisory_notes": [
+      "2026-09-30: Grocery budget well maintained within $850 target."
+    ],
+    "custom_preferences": {
+      "preferred_savings_day": "2nd of month"
+    }
+  },
+  "CUST-003": {
+    "learned_facts": [
+      "Freelance client payouts arrive irregularly between the 5th and 22nd.",
+      "Adobe CC and Figma are essential work tools (tax-deductible business expenses).",
+      "[2026-11-06] User stated: \"I'm saving for a new studio laptop in May\u2014set my food budget to $260 and show me how to stop my daily coffee and rideshare drain.\"",
+      "Updated Food & Dining monthly budget from $300 to $260."
+    ],
+    "past_advisory_notes": [
+      "2026-09-30: Recommended building a 2-month income smoothing buffer."
+    ],
+    "custom_preferences": {
+      "cash_buffer_floor": "$1,000"
+    }
+  }
+}

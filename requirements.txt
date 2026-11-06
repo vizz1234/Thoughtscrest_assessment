@@ -1,0 +1,13 @@
+# Core Multi-Agent & LLM Orchestration Dependencies
+langgraph>=0.2.0
+langchain-core>=0.3.0
+langchain-google-genai>=2.0.0
+google-genai>=1.0.0
+pydantic>=2.0.0
+
+# Data & Financial Math
+numpy>=1.24.0
+python-dotenv>=1.0.0
+
+# Conversational UI
+streamlit>=1.38.0

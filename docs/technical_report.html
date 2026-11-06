@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CrestBank AI Personal Finance Advisor — Architecture & Technical Report</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 14mm 15mm 14mm 15mm;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #0f172a;
+      background: #ffffff;
+      margin: 0;
+      padding: 0;
+      font-size: 10pt;
+      line-height: 1.48;
+    }
+    h1 {
+      font-size: 20pt;
+      color: #0f172a;
+      margin: 0 0 6px 0;
+      letter-spacing: -0.3px;
+    }
+    h2 {
+      font-size: 13.5pt;
+      color: #1e3a8a;
+      border-bottom: 2px solid #dbeafe;
+      padding-bottom: 4px;
+      margin: 18px 0 10px 0;
+      page-break-after: avoid;
+    }
+    h3 {
+      font-size: 11pt;
+      color: #0f172a;
+      margin: 12px 0 6px 0;
+      page-break-after: avoid;
+    }
+    p { margin: 0 0 8px 0; }
+    ul, ol { margin: 4px 0 10px 18px; padding: 0; }
+    li { margin-bottom: 4px; }
+    code {
+      font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+      font-size: 8.8pt;
+      background: #f1f5f9;
+      color: #0f172a;
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+    .cover-banner {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+      color: #ffffff;
+      padding: 22px 24px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+    }
+    .cover-banner h1 { color: #ffffff; font-size: 19pt; margin-bottom: 6px; }
+    .cover-subtitle { color: #93c5fd; font-size: 10.5pt; font-weight: 500; margin-bottom: 12px; }
+    .badge-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .badge {
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #f8fafc;
+      font-size: 8.5pt;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .card {
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 11px 13px;
+      background: #f8fafc;
+      page-break-inside: avoid;
+    }
+    .card-title {
+      font-weight: 700;
+      font-size: 10.5pt;
+      color: #1e3a8a;
+      margin-bottom: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .tag {
+      font-size: 7.5pt;
+      background: #dbeafe;
+      color: #1e40af;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8px 0 14px 0;
+      font-size: 9pt;
+      page-break-inside: avoid;
+    }
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 6px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: #0f172a;
+      color: #ffffff;
+      font-weight: 600;
+    }
+    tr:nth-child(even) td { background: #f8fafc; }
+    .diagram-box {
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      background: #f8fafc;
+      padding: 14px;
+      margin: 10px 0 14px 0;
+      text-align: center;
+      page-break-inside: avoid;
+    }
+    .callout {
+      border-left: 4px solid #2563eb;
+      background: #eff6ff;
+      padding: 9px 12px;
+      border-radius: 0 6px 6px 0;
+      margin: 8px 0 12px 0;
+      font-size: 9.3pt;
+      page-break-inside: avoid;
+    }
+    .page-break { page-break-before: always; }
+  </style>
+</head>
+<body>
+
+  <!-- COVER BANNER -->
+  <div class="cover-banner">
+    <h1>🏦 CrestBank AI Personal Finance Advisor</h1>
+    <div class="cover-subtitle">Multi-Agent Architecture, LangGraph Orchestration, Tool Calling, Memory &amp; Guardrails — Technical Submission Report</div>
+    <div class="badge-row">
+      <span class="badge">LangGraph StateGraph</span>
+      <span class="badge">4 Specialized AI Agents</span>
+      <span class="badge">Google Gemini + Deterministic Fallback</span>
+      <span class="badge">Pydantic V2 State Contracts</span>
+      <span class="badge">Dual-Tier Memory</span>
+      <span class="badge">Dual-Mode Guardrails</span>
+      <span class="badge">Streamlit Conversational UI</span>
+    </div>
+  </div>
+
+  <!-- SECTION 1 -->
+  <h2>1. Executive Summary &amp; Problem Statement</h2>
+  <p>
+    Traditional retail banking chatbots are limited to <strong>static monthly account statements and passive one-way transaction notifications</strong>. Customers see <em>what</em> they spent after the fact, but receive no autonomous reasoning across historical patterns, no root-cause categorization of spending surges, and no quantified guidance tied to their life goals.
+  </p>
+  <p>
+    The <strong>CrestBank AI Personal Finance Advisor</strong> upgrades this legacy experience into an autonomous, multi-agent financial advisory system built on <strong>LangGraph</strong> and <strong>Google Gemini</strong>. It coordinates four specialized agents that read multi-month transaction histories, detect behavioral anomalies and subscription creep, enforce strict inter-agent data dependencies, persist customer preferences in Dual-Tier Memory, and block off-topic requests via a Dual-Mode Domain Guardrail.
+  </p>
+
+  <div class="callout">
+    <strong>Mandatory Architectural Dependency Satisfied:</strong> The system enforces at both the <code>LangGraph StateGraph</code> edge level and runtime validation level that the <strong>Recommendation Agent</strong> strictly receives its analytical input (<code>SpendingAnalysisReport</code>) directly from the <strong>Spending Analysis Agent</strong>.
+  </div>
+
+  <!-- SECTION 2: ARCHITECTURE DIAGRAM -->
+  <h2>2. System Architecture &amp; LangGraph Orchestration Diagram</h2>
+  <div class="diagram-box">
+    <svg viewBox="0 0 860 395" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg" style="font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#1e3a8a"/>
+        </marker>
+        <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+        </marker>
+        <marker id="arrow-red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#e11d48"/>
+        </marker>
+      </defs>
+
+      <!-- User & Streamlit UI -->
+      <rect x="18" y="20" width="175" height="68" rx="8" fill="#0f172a" stroke="#334155" stroke-width="1.5"/>
+      <text x="105" y="45" fill="#ffffff" font-size="11" font-weight="bold" text-anchor="middle">Customer / Streamlit UI</text>
+      <text x="105" y="62" fill="#93c5fd" font-size="9" text-anchor="middle">app.py &amp; cli.py</text>
+      <text x="105" y="76" fill="#cbd5e1" font-size="8.5" text-anchor="middle">Isolated Per-Customer Session</text>
+
+      <!-- Planner Entry Node + Guardrail -->
+      <rect x="245" y="16" width="235" height="76" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+      <text x="362" y="36" fill="#1e3a8a" font-size="11" font-weight="bold" text-anchor="middle">1A. Planner Agent (Entry Node)</text>
+      <text x="362" y="52" fill="#0f172a" font-size="9" text-anchor="middle">• Dual-Mode Domain Guardrail Check</text>
+      <text x="362" y="66" fill="#0f172a" font-size="9" text-anchor="middle">• Intent Classification &amp; Fact Extraction</text>
+      <text x="362" y="80" fill="#1e40af" font-size="8.5" font-weight="bold" text-anchor="middle">Outputs: ExecutionPlan</text>
+
+      <!-- Memory Layer -->
+      <rect x="545" y="16" width="295" height="76" rx="8" fill="#fefce8" stroke="#ca8a04" stroke-width="1.5"/>
+      <text x="692" y="36" fill="#854d0e" font-size="11" font-weight="bold" text-anchor="middle">Dual-Tier Memory Layer (src/memory/)</text>
+      <text x="692" y="53" fill="#0f172a" font-size="9" text-anchor="middle">• Short-Term: Sliding Chat History + Session Cache</text>
+      <text x="692" y="68" fill="#0f172a" font-size="9" text-anchor="middle">• Long-Term: SQLite Profile + JSON Learned Facts</text>
+      <text x="692" y="82" fill="#713f12" font-size="8.5" text-anchor="middle">Strictly Isolated by customer_id</text>
+
+      <!-- Arrows Top Row -->
+      <line x1="193" y1="54" x2="243" y2="54" stroke="#1e3a8a" stroke-width="2" marker-end="url(#arrow)"/>
+      <line x1="480" y1="54" x2="543" y2="54" stroke="#ca8a04" stroke-width="1.8" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+
+      <!-- Spending Analysis Agent -->
+      <rect x="60" y="145" width="240" height="86" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+      <text x="180" y="166" fill="#065f46" font-size="11" font-weight="bold" text-anchor="middle">2. Spending Analysis Agent</text>
+      <text x="180" y="183" fill="#0f172a" font-size="9" text-anchor="middle">• Categorizes 3-Month Ledger</text>
+      <text x="180" y="197" fill="#0f172a" font-size="9" text-anchor="middle">• Computes MoM % &amp; Micro-Spends</text>
+      <text x="180" y="211" fill="#0f172a" font-size="9" text-anchor="middle">• Detects Overlapping Subscriptions</text>
+      <text x="180" y="224" fill="#047857" font-size="8.5" font-weight="bold" text-anchor="middle">Writes: state['spending_report']</text>
+
+      <!-- Recommendation Agent -->
+      <rect x="355" y="145" width="245" height="86" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+      <text x="477" y="166" fill="#166534" font-size="11" font-weight="bold" text-anchor="middle">3. Recommendation Agent</text>
+      <text x="477" y="183" fill="#0f172a" font-size="9" text-anchor="middle">• Reads state['spending_report']</text>
+      <text x="477" y="197" fill="#0f172a" font-size="9" text-anchor="middle">• Simulates Habit &amp; Budget Cuts</text>
+      <text x="477" y="211" fill="#0f172a" font-size="9" text-anchor="middle">• Protects LTM Essential Tools</text>
+      <text x="477" y="224" fill="#15803d" font-size="8.5" font-weight="bold" text-anchor="middle">Writes: state['recommendation_report']</text>
+
+      <!-- Alerting Agent -->
+      <rect x="640" y="145" width="200" height="86" rx="8" fill="#fff1f2" stroke="#e11d48" stroke-width="2"/>
+      <text x="740" y="166" fill="#9f1239" font-size="11" font-weight="bold" text-anchor="middle">4. Alerting Agent</text>
+      <text x="740" y="183" fill="#0f172a" font-size="9" text-anchor="middle">• Proactive Startup Scan</text>
+      <text x="740" y="197" fill="#0f172a" font-size="9" text-anchor="middle">• Budget Breach (&gt;85%/100%)</text>
+      <text x="740" y="211" fill="#0f172a" font-size="9" text-anchor="middle">• Z-Score Outlier Spikes</text>
+      <text x="740" y="224" fill="#be123c" font-size="8.5" font-weight="bold" text-anchor="middle">Writes: state['alert_report']</text>
+
+      <!-- Enforced Handoff Arrow (Spending -> Recommendation) -->
+      <line x1="300" y1="188" x2="353" y2="188" stroke="#059669" stroke-width="2.8" marker-end="url(#arrow-green)"/>
+      <text x="326" y="178" fill="#065f46" font-size="8" font-weight="bold" text-anchor="middle">Handoff</text>
+
+      <!-- Recommendation -> Alerting Arrow -->
+      <line x1="600" y1="188" x2="638" y2="188" stroke="#1e3a8a" stroke-width="2" marker-end="url(#arrow)"/>
+
+      <!-- Planner Entry -> Spending Arrow -->
+      <path d="M 310 92 L 180 143" stroke="#1e3a8a" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+
+      <!-- Deterministic Tool Layer -->
+      <rect x="60" y="268" width="490" height="108" rx="8" fill="#f1f5f9" stroke="#64748b" stroke-width="1.5"/>
+      <text x="305" y="288" fill="#0f172a" font-size="10.5" font-weight="bold" text-anchor="middle">Deterministic Python Financial Tool Registry (src/tools/ — 100% Exact Math)</text>
+      <text x="75" y="308" fill="#1e293b" font-size="8.8">1. tool_aggregate_spending_by_category() — Category sums, MoM %, 3-month rolling avg</text>
+      <text x="75" y="324" fill="#1e293b" font-size="8.8">2. tool_detect_subscriptions_and_habits() — Overlapping subscriptions &amp; high-freq micro-spends</text>
+      <text x="75" y="340" fill="#1e293b" font-size="8.8">3. tool_simulate_budget_optimization() — Dollar savings projections &amp; goal acceleration math</text>
+      <text x="75" y="356" fill="#1e293b" font-size="8.8">4. tool_evaluate_financial_alerts() — Budget utilization ratios, Z-score spikes, cashflow burn</text>
+      <text x="75" y="370" fill="#1e293b" font-size="8.8">5. evaluate_domain_guardrail() — Dual-mode LLM Intent + Deterministic Regex/Domain Guardrail</text>
+
+      <!-- Planner Synthesis Node -->
+      <rect x="580" y="268" width="260" height="108" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+      <text x="710" y="290" fill="#1e3a8a" font-size="11" font-weight="bold" text-anchor="middle">1B. Planner Agent (Synthesis Node)</text>
+      <text x="710" y="308" fill="#0f172a" font-size="9" text-anchor="middle">• Collates Spending, Recs &amp; Alerts</text>
+      <text x="710" y="323" fill="#0f172a" font-size="9" text-anchor="middle">• Updates STM &amp; LTM Memory Stores</text>
+      <text x="710" y="338" fill="#0f172a" font-size="9" text-anchor="middle">• Writes Audit Trace to logs/*.log</text>
+      <text x="710" y="356" fill="#1e40af" font-size="8.5" font-weight="bold" text-anchor="middle">Returns Final Response to UI</text>
+
+      <!-- Alerting -> Planner Synthesis -->
+      <line x1="740" y1="231" x2="740" y2="266" stroke="#1e3a8a" stroke-width="2" marker-end="url(#arrow)"/>
+
+      <!-- Guardrail Short-Circuit Arrow -->
+      <path d="M 440 92 Q 610 175 645 266" stroke="#e11d48" stroke-width="1.6" stroke-dasharray="5,3" fill="none" marker-end="url(#arrow-red)"/>
+      <text x="562" y="135" fill="#e11d48" font-size="8" font-weight="bold">Guardrail Block Short-Circuit</text>
+    </svg>
+  </div>
+
+  <!-- SECTION 3: THE 4 SPECIALIZED AGENTS -->
+  <h2>3. Detailed Specification of the 4 Specialized Agents</h2>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">1. Planner Agent <span class="tag">src/agents/planner_agent.py</span></div>
+      <p><strong>Role:</strong> Front-door supervisor, guardrail gatekeeper, execution planner, and final response synthesizer.</p>
+      <ul>
+        <li><strong>Entry Node (<code>planner_plan_node</code>):</strong> Runs the Dual-Mode Guardrail, extracts new user facts/budget updates into Long-Term Memory, classifies intent, and outputs a typed <code>ExecutionPlan</code>.</li>
+        <li><strong>Dependency Enforcement:</strong> Whenever recommendations are needed, forces <code>run_spending_agent = True</code> first.</li>
+        <li><strong>Synthesis Node (<code>planner_synthesize_node</code>):</strong> Collates outputs from all executed sub-agents into markdown tables and bulleted action plans.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">2. Spending Analysis Agent <span class="tag">src/agents/spending_agent.py</span></div>
+      <p><strong>Role:</strong> Transaction data scientist &amp; behavioral pattern recognizer.</p>
+      <ul>
+        <li><strong>Tools Called:</strong> <code>tool_aggregate_spending_by_category</code> and <code>tool_detect_subscriptions_and_habits</code>.</li>
+        <li><strong>Capabilities:</strong> Categorizes 3 months of transactions across 8 categories, calculates MoM dollar/percentage shifts, detects overlapping subscriptions (e.g., 3 video streaming services), and quantifies high-frequency micro-spend habits (e.g., 11x monthly food delivery orders).</li>
+        <li><strong>Output Contract:</strong> <code>SpendingAnalysisReport</code> written to <code>state["spending_report"]</code>.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">3. Recommendation Agent <span class="tag">src/agents/recommendation_agent.py</span></div>
+      <p><strong>Role:</strong> Personalized financial strategist &amp; budget optimizer.</p>
+      <ul>
+        <li><strong>Strict Input Contract:</strong> Consumes <code>SpendingAnalysisReport</code> directly from the Spending Analysis Agent (raises <code>ValueError</code> if missing).</li>
+        <li><strong>Tools Called:</strong> <code>tool_simulate_budget_optimization</code>.</li>
+        <li><strong>Capabilities:</strong> Computes monthly/annual savings from right-sizing micro-spend habits, consolidating redundant subscriptions (while respecting LTM constraints like keeping Adobe/Figma), normalizing category spikes, and sweeping idle checking cash into a 4.50% APY vault.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">4. Alerting Agent <span class="tag">src/agents/alerting_agent.py</span></div>
+      <p><strong>Role:</strong> Proactive &amp; reactive overspending and risk monitor.</p>
+      <ul>
+        <li><strong>Dual Modes:</strong> Runs <em>proactively</em> when a customer opens the chatbot (upgrading passive bank notifications) and <em>reactively</em> as a node inside the LangGraph workflow.</li>
+        <li><strong>Tools Called:</strong> <code>tool_evaluate_financial_alerts</code>.</li>
+        <li><strong>Signals Flagged:</strong> Category budget breaches (&ge;100% Critical, &ge;85% Warning), statistical single-transaction outliers ($Z$-score &ge; 2.2), subscription creep, and low checking liquidity burn risks.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="page-break"></div>
+
+  <!-- SECTION 4: TOOLS & MEMORY -->
+  <h2>4. Tool Registry, Dual-Tier Memory &amp; Guardrail Engineering</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:26%;">Tool / Module</th>
+        <th style="width:22%;">Invoked By</th>
+        <th>Algorithmic &amp; Functional Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>tool_aggregate_spending_by_category</code><br/>(<code>transaction_tools.py</code>)</td>
+        <td>Spending Analysis Agent</td>
+        <td>Queries SQLite transactions across <code>2026-08</code>, <code>2026-09</code>, and <code>2026-10</code>; computes category totals, 3-month rolling averages, budget utilization %, Month-over-Month (MoM) deltas, and top merchants per category.</td>
+      </tr>
+      <tr>
+        <td><code>tool_detect_subscriptions_and_habits</code><br/>(<code>transaction_tools.py</code>)</td>
+        <td>Spending Analysis Agent</td>
+        <td>Identifies recurring charges, flags overlapping services in the same subcategory (e.g., multiple video/music apps), and clusters high-frequency micro-spends (&ge;3 txns/mo in Food Delivery, Coffee Shops, or Rideshare).</td>
+      </tr>
+      <tr>
+        <td><code>tool_simulate_budget_optimization</code><br/>(<code>simulation_tools.py</code>)</td>
+        <td>Recommendation Agent</td>
+        <td>Takes <code>SpendingAnalysisReport</code> + customer goals; simulates 45%–50% habit frequency reductions, redundant subscription removals (filtering out LTM-protected work tools), and APY cash sweeps; computes new savings rate % and months saved toward primary goal.</td>
+      </tr>
+      <tr>
+        <td><code>tool_evaluate_financial_alerts</code><br/>(<code>anomaly_tools.py</code>)</td>
+        <td>Alerting Agent</td>
+        <td>Evaluates 4 risk dimensions: (1) Budget utilization &ge;85% / &ge;100%, (2) Single-transaction statistical outliers ($Z = (x - \mu)/\sigma \ge 2.2$), (3) Subscription creep, and (4) Low checking buffer / idle cash opportunity.</td>
+      </tr>
+      <tr>
+        <td><code>evaluate_domain_guardrail</code><br/>(<code>guardrail_tools.py</code>)</td>
+        <td>Planner Agent (Entry)</td>
+        <td><strong>Dual-Mode Guardrail:</strong> Uses Gemini semantic intent classification when <code>GOOGLE_API_KEY</code> is active, or deterministic regex blocklists (recipes/pasta, medical/acne, coding, trivia, prompt injection) + positive financial keyword verification when offline.</td>
+      </tr>
+      <tr>
+        <td><code>MemoryManager</code><br/>(<code>memory_manager.py</code>)</td>
+        <td>Planner &amp; Recommendation Agents</td>
+        <td><strong>Short-Term Memory:</strong> Per-customer sliding window (12 turns) + cached session reports.<br/><strong>Long-Term Memory:</strong> Persistent SQLite profile + <code>long_term_memory.json</code> storing learned facts and dynamic budget updates (e.g., <em>"set my dining budget to $500"</em>).</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- SECTION 5: DUAL-MODE GUARDRAILS & SAFETY ARCHITECTURE -->
+  <h2>5. Dual-Mode Domain Guardrails &amp; Safety Architecture (<code>src/tools/guardrail_tools.py</code>)</h2>
+  <p>
+    Because a banking advisor must never hallucinate medical, culinary, or off-topic advice—or waste compute running financial database tools on irrelevant prompts—the system enforces a <strong>Dual-Mode Domain Guardrail</strong> inside the <strong>Planner Agent's Entry Node (<code>planner_plan_node</code>)</strong> before any sub-agent is invoked:
+  </p>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Mode 1: Live LLM Semantic Intent Guardrail <span class="tag">When GOOGLE_API_KEY Is Set</span></div>
+      <p><strong>Mechanism:</strong> Invokes Google Gemini (<code>temperature=0.0</code>) as a zero-shot semantic compliance classifier before planning.</p>
+      <ul>
+        <li><strong>Classification Contract:</strong> Returns strictly <code>ALLOW | &lt;reason&gt;</code> or <code>BLOCK | &lt;off-topic category &amp; reason&gt;</code>.</li>
+        <li><strong>Scope Enforced:</strong> Permits personal finance, spending analysis, budgeting, savings goals, subscriptions, and account inquiries; blocks all non-financial intents and adversarial prompt injections.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">Mode 2: Deterministic Pattern &amp; Scope Guardrail <span class="tag">Offline / No API Key</span></div>
+      <p><strong>Mechanism:</strong> Two-stage deterministic rule engine ensuring 100% protection even without an external LLM key:</p>
+      <ul>
+        <li><strong>Stage A — Categorized Off-Topic Regex Blocklist:</strong> Blocks <em>Cooking &amp; Recipes</em> (e.g., <code>"give me a pasta receipe"</code>), <em>Medical &amp; Health</em> (e.g., <code>"how to treat my acne"</code>), <em>Coding/Homework</em>, <em>General Trivia/Weather</em>, and <em>Prompt Injection / Jailbreaks</em>.</li>
+        <li><strong>Stage B — Positive Financial Keyword Verification:</strong> Rejects queries lacking any banking, spending, budget, or transaction terminology.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout">
+    <strong>LangGraph Short-Circuit Routing on Guardrail Block:</strong> When <code>evaluate_domain_guardrail()</code> returns <code>is_allowed = False</code>, the Planner sets <code>user_intent = "BLOCKED_OFF_TOPIC"</code> and <code>route_after_planner()</code> routes directly from <code>planner_plan_node &rarr; planner_synthesize_node</code>. <strong>Zero sub-agents (Spending Analysis, Recommendation, Alerting) or SQLite transaction tools are executed</strong>, and the blocked event is logged as a <code>[GUARDRAIL]</code> step in <code>logs/</code>.
+  </div>
+
+  <!-- SECTION 6: MOCK DATA PERSONAS -->
+  <h2>6. Multi-Persona Mock Dataset &amp; Planted Financial Patterns</h2>
+  <p>To rigorously demonstrate autonomous reasoning across diverse financial situations, <code>src/data/mock_generator.py</code> seeds SQLite (<code>data_store/bank_advisor.db</code>) with <strong>3 customer personas across 3 months (~155 realistic transactions)</strong>:</p>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:20%;">Persona</th>
+        <th style="width:22%;">Financial Profile &amp; Goals</th>
+        <th>Planted Transaction Patterns Autonomous Agents Discover</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Alex Rivera</strong><br/>(<code>CUST-001</code>)<br/><em>Young Tech Pro</em></td>
+        <td>Income: <code>$6,200/mo</code><br/>Checking: <code>$3,420</code><br/>Goal: House Down Payment (<code>$6.8k / $20k</code>)</td>
+        <td>
+          • <strong>Food Delivery Surge:</strong> Food &amp; Dining jumps <code>+72.6% MoM</code> (<code>$430</code> &rarr; <code>$742</code>, <code>165%</code> of <code>$450</code> budget) driven by 11 DoorDash/UberEats orders.<br/>
+          • <strong>Subscription Creep:</strong> 6 recurring charges (<code>$136.94/mo</code> vs <code>$80</code> budget) with overlapping video (StreamFlix, HuluPlus, MaxCinema) and music apps.<br/>
+          • <strong>Recommendation Output:</strong> Unlocks <strong><code>$430.71/mo ($5,168.52/yr)</code></strong>, boosting savings rate from <code>28.2%</code> &rarr; <code>35.2%</code>.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Priya Sharma</strong><br/>(<code>CUST-002</code>)<br/><em>Family Manager</em></td>
+        <td>Income: <code>$8,500/mo</code><br/>Checking: <code>$14,200</code><br/>Goal: 6-Mo Emergency Fund (<code>$9.5k / $25k</code>)</td>
+        <td>
+          • <strong>Statistical Z-Score Outlier:</strong> One-off <code>$680.00</code> emergency dishwasher purchase at HomeDepot (<code>2.5x</code> category mean, $Z = 2.2$).<br/>
+          • <strong>Utility Bill Surge:</strong> Electricity &amp; gas surged <code>+60.3% MoM</code> to <code>$388</code> (<code>149%</code> of budget).<br/>
+          • <strong>Idle Cash Sweep:</strong> Holds <code>$14,200</code> in checking at 0.01% APY; recommends sweeping <code>$7,400</code> into 4.50% APY Vault (<code>+$333/yr</code> risk-free interest).
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Marcus Vance</strong><br/>(<code>CUST-003</code>)<br/><em>Freelance Designer</em></td>
+        <td>Income: Variable (<code>$3,600</code> in Oct)<br/>Checking: <code>$890</code><br/>Goal: Pay Off High-APR Card (<code>$2,400</code>)</td>
+        <td>
+          • <strong>Critical Cash-Flow Burn Alert:</strong> October freelance income dip + low checking buffer (<code>$890</code>) triggers a <code>CRITICAL</code> liquidity warning.<br/>
+          • <strong>Dual Micro-Spend Drain:</strong> 10x specialty coffee visits (<code>$115/mo</code>) + 8x Uber/Lyft rides (<code>$276/mo</code>) = <code>$391/mo ($4,692/yr)</code> drain.<br/>
+          • <strong>LTM-Protected Work Tools:</strong> Long-Term Memory notes <code>Adobe CC</code> &amp; <code>Figma</code> are essential work tools, so Recommendation Agent protects them from cancellation.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- SECTION 7: ARCHITECTURAL TRADE-OFFS -->
+  <h2>7. Key Architectural Decisions &amp; Engineering Trade-Offs</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:28%;">Architectural Decision</th>
+        <th style="width:36%;">Why Chosen (Pros)</th>
+        <th>Trade-Offs Mitigated</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>ADR-01: LangGraph <code>StateGraph</code> vs. Peer-to-Peer Swarm</strong></td>
+        <td>Guarantees deterministic execution order and enforces via conditional edges that <code>Recommendation Agent</code> always receives <code>state["spending_report"]</code> from <code>Spending Analysis Agent</code>.</td>
+        <td>Requires explicit state schema definition upfront, trading free-form agent chatter for 100% banking auditability and zero infinite loops.</td>
+      </tr>
+      <tr>
+        <td><strong>ADR-02: Deterministic Python Tool Math vs. LLM Token Math</strong></td>
+        <td>Eliminates LLM arithmetic hallucinations. Every dollar sum, MoM %, $Z$-score, and compound savings projection is 100% exact and executes in &lt;2ms.</td>
+        <td>Requires dedicated Python tool functions in <code>src/tools/</code> rather than dumping raw transaction CSVs into prompts.</td>
+      </tr>
+      <tr>
+        <td><strong>ADR-03: Typed Pydantic V2 Inter-Agent Contracts</strong></td>
+        <td>Prevents "telephone-game" context drift between agents; validates field types at runtime.</td>
+        <td>Schema updates require modifying <code>src/schemas/models.py</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>ADR-04: Dual-Mode Gemini Engine + Offline Fallback</strong></td>
+        <td>Supports live Google Gemini when <code>GOOGLE_API_KEY</code> is set, while guaranteeing 100% offline execution for evaluators without an API key.</td>
+        <td>Maintains both LLM prompts and structured synthesis templates.</td>
+      </tr>
+      <tr>
+        <td><strong>ADR-05: Background File Trace Logging (<code>logs/</code>)</strong></td>
+        <td>Keeps the customer-facing Streamlit UI clean while recording full step-by-step agent traces to <code>logs/agent_traces.jsonl</code> and <code>logs/&lt;CUST_ID&gt;_traces.log</code>.</td>
+        <td>Developers inspect trace logs in <code>logs/</code> or via <code>python cli.py --demo</code> rather than cluttering the end-user chat bubble.</td>
+      </tr>
+      <tr>
+        <td><strong>ADR-06: Dual-Mode Domain &amp; Safety Guardrail</strong></td>
+        <td>Prevents off-topic queries (recipes, medical/acne advice, coding, trivia) and prompt injections using Gemini intent classification when online and deterministic regex + domain-keyword rules when offline.</td>
+        <td>Short-circuits LangGraph directly to refusal synthesis, saving compute and protecting bank compliance boundaries.</td>
+      </tr>
+    </tbody>
+  </table>
+
+</body>
+</html>
+
