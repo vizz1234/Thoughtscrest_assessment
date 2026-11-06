@@ -4,6 +4,16 @@ An **Agentic AI Personal Finance Advisor** built with **LangGraph**, **Google Ge
 
 ---
 
+## 🎥 Prototype Demonstration & Technical Report
+
+[![CrestBank AI Personal Finance Advisor Demo](./docs/demo_preview.gif)](./CrestBank_Prototype_Demo.mp4)
+
+* 🎬 **Full 1080p Prototype Walkthrough Video (MP4)**: [**`CrestBank_Prototype_Demo.mp4`**](./CrestBank_Prototype_Demo.mp4) *(Click the preview above or link to download/watch full HD video)*
+* 📄 **Detailed Technical & Architecture Report (PDF)**: [**`CrestBank_AI_Personal_Finance_Advisor_Report.pdf`**](./CrestBank_AI_Personal_Finance_Advisor_Report.pdf)
+* 📐 **Architecture Decision Records (ADRs) & Trade-Offs**: [**`ARCHITECTURE_AND_TRADEOFFS.md`**](./ARCHITECTURE_AND_TRADEOFFS.md)
+
+---
+
 ## ✨ Key Capabilities Demonstrated
 
 1. **Multi-Agent Architecture (`src/agents/`)**:
